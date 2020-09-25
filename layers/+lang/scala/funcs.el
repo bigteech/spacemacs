@@ -1,6 +1,6 @@
 ;;; funcs.el --- Scala Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -52,7 +52,16 @@
 
 (defun spacemacs//scala-setup-metals ()
   "Setup LSP metals for Scala."
-  (setq-local lsp-prefer-flymake nil))
+  (add-hook 'scala-mode-hook #'lsp))
+
+(defun spacemacs//scala-setup-dap ()
+  "Setup DAP in metals for Scala."
+  (when (spacemacs//scala-backend-metals-p)
+    (add-hook 'scala-mode-hook #'dap-mode)))
+
+(defun spacemacs//scala-setup-treeview ()
+  "Setup lsp-treemacs for Scala."
+  (setq lsp-metals-treeview-show-when-views-received t))
 
 (defun spacemacs//scala-disable-flycheck-scala ()
   (push 'scala flycheck-disabled-checkers))

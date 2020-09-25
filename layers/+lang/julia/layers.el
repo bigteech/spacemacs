@@ -1,6 +1,6 @@
 ;;; layers.el --- Julia Layer layers File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Adam Beckmeyer <adam_git@thebeckmeyers.xyz>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -9,6 +9,6 @@
 ;;
 ;;; License: GPLv3
 
-(when (and (boundp 'julia-mode-enable-lsp)
-           julia-mode-enable-lsp t)
-  (configuration-layer/declare-layer 'lsp))
+(when (and (boundp 'julia-backend)
+           (eq julia-backend 'lsp))
+  (configuration-layer/declare-layer-dependencies '(lsp)))
