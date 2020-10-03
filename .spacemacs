@@ -33,19 +33,13 @@ values."
    dotspacemacs-configuration-layers
    '(
      fsharp
-     lsp-mode
-     all-the-icons
-     (typescript :variables typescript-backend 'tide)
-     (typescript :variables  typescript-fmt-tool 'prettier)
-     vterm
      lsp
      tide
      react
-     neotree
-     less
-     yaml
      javascript
-     flycheck
+     (typescript :variables typescript-backend 'tide)
+     (typescript :variables  typescript-fmt-tool 'prettier)
+     yaml
      markdown
      html
      ivy
@@ -61,9 +55,9 @@ values."
      emacs-lisp
       git
      org
-     (shell :variables
-            shell-default-height 50
-            shell-default-position 'right)
+     ;; (shell :variables
+     ;;        shell-default-height 50
+     ;;        shell-default-position 'right)
      ;; spell-checking
      ;; syntax-checking
      ;; version-control
@@ -145,8 +139,8 @@ values."
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(
-                         spacemacs-dark
                          spacemacs-light
+                         spacemacs-dark
                          )
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -263,7 +257,6 @@ values."
    ;; If non nil smooth scrolling (native-scrolling) is enabled. Smooth
    ;; scrolling overrides the default behavior of Emacs which recenters point
    ;; when it reaches the top or bottom of the screen. (default t)
-   dotspacemacs-smooth-scrolling t
    ;; Control line numbers activation.
    ;; If set to `t' or `relative' line numbers are turned on in all `prog-mode' and
    ;; `text-mode' derivatives. If set to `relative', line numbers are relative.
@@ -325,7 +318,6 @@ values."
   )
 (defun dotspacemacs/user-init ()
     (my-setup-indent 2) ; indent 2 spaces width
-  (add-to-list 'load-path "/Users/quanzheng/vterm-toggle.el")
   (defun copy-from-osx ()
     (shell-command-to-string "pbpaste"))
 
@@ -351,80 +343,11 @@ before packages are loaded. If you are unsure, you should try in setting them in
   )
 
 (defun dotspacemacs/user-config ()
-;; term
-  (setq-default fsharp-indent-offset 2)
-  (add-hook 'fsharp-mode-hook 'highlight-indentation-mode)
-  (set-cursor-color "#ff0000") 
-  (setq inferior-fsharp-program "fsharpi -readline-")
-  (load-file "~/.emacs.d/vterm-toggle.el")
-  (use-package centaur-tabs
-    :load-path "~/.emacs.d/centaur-tabs"
-    :config
-    (centaur-tabs-mode t)
-    )
-  (global-set-key  (kbd "s-l") 'centaur-tabs-forward)
-  (global-set-key  (kbd "s-h") 'centaur-tabs-backward)
-  (global-set-key (kbd "s-'") 'vterm-toggle)
-  (setq centaur-tabs-buffer-groups-function 'vmacs-awesome-tab-buffer-groups)
-  (defun vmacs-awesome-tab-buffer-groups ()
-    "`vmacs-awesome-tab-buffer-groups' control buffers' group rules. "
-    (list
-     (cond
-      ((derived-mode-p 'eshell-mode 'term-mode 'shell-mode 'vterm-mode)
-       "Term")
-      ((string-match-p (rx (or
-                            "\*Helm"
-                            "\*helm"
-                            "\*tramp"
-                            "\*Completions\*"
-                            "\*sdcv\*"
-                            "\*Messages\*"
-                            "\*Ido Completions\*"
-                            ))
-                       (buffer-name))
-       "Emacs")
-      (t "Common"))))
-
-  (setq vterm-toggle--vterm-buffer-p-function 'vmacs-term-mode-p)
-  (defun vmacs-term-mode-p(&optional args)
-    (derived-mode-p 'eshell-mode 'term-mode 'shell-mode 'vterm-mode))
-  (defun centaur-tabs-hide-tab (x)
-    "Do no to show buffer X in tabs."
-    (let ((name (format "%s" x)))
-      (and (not (string-prefix-p "vterm" name)))
-      ))
-  (global-set-key (kbd "s-t") 'vterm)
-  (setq centaur-tabs-cycle-scope 'tabs)
-
-
-  (setq flycheck-standard-error-navigation t)
-  (setq ivy-initial-inputs-alist nil)
   (global-set-key (kbd "<C-up>") 'shrink-window)
   (global-set-key (kbd "<C-down>") 'enlarge-window)
   (global-set-key (kbd "<C-left>") 'shrink-window-horizontally)
   (global-set-key (kbd "<C-right>") 'enlarge-window-horizontally)
-  ;; vterm
-  ;; (require 'vterm)
-  (evil-define-key 'insert vterm-mode-map
-    (kbd "C-a") '(lambda () (interactive) (vterm-send-string "\C-a"))
-    (kbd "C-u") '(lambda () (interactive) (vterm-send-string "\C-u"))
-    (kbd "C-e") '(lambda () (interactive) (vterm-send-string "\C-e"))
-    (kbd "C-f") '(lambda () (interactive) (vterm-send-string "\C-f"))
-    (kbd "C-b") '(lambda () (interactive) (vterm-send-string "\C-b"))
-    (kbd "C-d") '(lambda () (interactive) (vterm-send-string "\C-d"))
-    (kbd "C-w") '(lambda () (interactive) (vterm-send-string "\C-w"))
-    (kbd "C-r") '(lambda () (interactive) (vterm-send-string "\C-r"))
-    (kbd "C-n") '(lambda () (interactive) (vterm-send-string "\C-n"))
-    (kbd "C-p") '(lambda () (interactive) (vterm-send-string "\C-p"))
-    (kbd "C-k") '(lambda () (interactive) (vterm-send-string "\C-k"))
-    (kbd "C-v") '(lambda () (interactive) (vterm-yank))
-    (kbd "s-v") '(lambda () (interactive) (vterm-yank))
-    (kbd "C-]") '(lambda () (interactive) (vterm-send-string "\C-[")))
-  (add-hook 'term-mode-hook 'ansi-term-handle-close)
-  (add-hook 'term-mode-hook (lambda () (setq bidi-paragraph-direction 'left-to-right)))
-
-  ;; https://github.com/syl20bnr/spacemacs/issues/10779
-  (setq term-char-mode-point-at-process-mark nil)
+  (setq ivy-initial-inputs-alist nil)
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration.
