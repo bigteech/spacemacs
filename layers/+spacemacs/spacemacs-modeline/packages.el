@@ -12,7 +12,7 @@
 (setq spacemacs-modeline-packages
       '(
         anzu
-        (doom-modeline :toggle (eq (spacemacs/get-mode-line-theme-name) 'doom))
+        doom-modeline
         fancy-battery
         ;; dependency of spaceline-all-the-icons which came from
         ;; the emacs wiki, we fetch it from Emacs Mirror for now.
@@ -22,7 +22,6 @@
                     :location (recipe :fetcher github
                                       :repo emacsmirror/font-lock-plus))
         neotree
-        spaceline
         spaceline-all-the-icons
         symon
         (vim-powerline :location local)))
@@ -83,7 +82,6 @@
       ;; Segment toggles
       (dolist (spec '((minor-modes "tmm")
                       (major-mode "tmM")
-                      (version-control "tmv")
                       (new-version "tmV")
                       (point-position "tmp")
                       (org-clock "tmc")))
