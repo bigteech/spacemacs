@@ -1,0 +1,3 @@
+[submodule "centaur-tabs"]
+	path = centaur-tabs
+	url = git@github.com:ema2159/centaur-tabs.git
