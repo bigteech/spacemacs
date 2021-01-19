@@ -37,6 +37,8 @@
         (define-key Info-mode-map "o" 'ace-link-info))
       (with-eval-after-load 'help-mode
         (define-key help-mode-map "o" 'ace-link-help))
+      (with-eval-after-load 'woman
+        (define-key woman-mode-map "o" 'link-hint-open-link))
       (with-eval-after-load 'eww
         (define-key eww-link-keymap "o" 'ace-link-eww)
         (define-key eww-mode-map "o" 'ace-link-eww)))))
@@ -431,7 +433,7 @@
     (progn
       (setq winum-auto-assign-0-to-minibuffer nil
             winum-auto-setup-mode-line nil
-            winum-ignored-buffers '(" *which-key*"))
+            winum-ignored-buffers '(" *LV*" " *which-key*"))
       (spacemacs/set-leader-keys
         "`" 'winum-select-window-by-number
         "²" 'winum-select-window-by-number

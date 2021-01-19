@@ -46,6 +46,7 @@
         (org-trello :toggle org-enable-trello-support)
         (org-sticky-header :toggle org-enable-sticky-header)
         (verb :toggle org-enable-verb-support)
+        (org-roam :toggle org-enable-roam-support)
         ))
 
 (defun org/post-init-company ()
@@ -83,7 +84,7 @@
 (defun org/init-helm-org-rifle ()
   (use-package helm-org-rifle
     :defer t
-    :init (spacemacs/set-leader-keys "aor" 'helm-org-rifle)))
+    :init (spacemacs/set-leader-keys "ao/" 'helm-org-rifle)))
 
 (defun org/init-htmlize ()
   (use-package htmlize
@@ -231,6 +232,7 @@ Will work on both org-mode and any mode that accepts plain html."
         "Tc" 'org-toggle-checkbox
         "Te" 'org-toggle-pretty-entities
         "Ti" 'org-toggle-inline-images
+        "Tn" 'org-num-mode
         "Tl" 'org-toggle-link-display
         "Tt" 'org-show-todo-tree
         "TT" 'org-todo
@@ -259,7 +261,7 @@ Will work on both org-mode and any mode that accepts plain html."
         "sk" 'org-move-subtree-up
         "sl" 'org-demote-subtree
         "sn" 'org-narrow-to-subtree
-        "sN" 'widen
+        "sw" 'widen
         "sr" 'org-refile
         "ss" 'org-sparse-tree
         "sS" 'org-sort
@@ -288,6 +290,7 @@ Will work on both org-mode and any mode that accepts plain html."
         "tn" 'org-table-create
         "tN" 'org-table-create-with-table.el
         "tr" 'org-table-recalculate
+        "tR" 'org-table-recalculate-buffer-tables
         "ts" 'org-table-sort-lines
         "ttf" 'org-table-toggle-formula-debugger
         "tto" 'org-table-toggle-coordinate-overlays
@@ -355,10 +358,11 @@ Will work on both org-mode and any mode that accepts plain html."
       (spacemacs/declare-prefix "ao" "org")
       (spacemacs/declare-prefix "aof" "feeds")
       (spacemacs/declare-prefix "aoC" "clock")
+      ;; org-agenda
+      (when (configuration-layer/layer-used-p 'ivy)
+        (spacemacs/set-leader-keys "ao/" 'org-occur-in-agenda-files))
       (spacemacs/set-leader-keys
-        ;; org-agenda
         "ao#" 'org-agenda-list-stuck-projects
-        "ao/" 'org-occur-in-agenda-files
         "aoa" 'org-agenda-list
         "aoo" 'org-agenda
         "aoc" 'org-capture
@@ -388,6 +392,13 @@ Will work on both org-mode and any mode that accepts plain html."
       (define-key global-map "\C-cc" 'org-capture))
     :config
     (progn
+      ;; Activate evil insert state after these commands.
+      (dolist (fn '(org-insert-drawer
+                    org-insert-heading
+                    org-insert-item
+                    org-insert-structure-template))
+        (advice-add fn :after #'spacemacs//org-maybe-activate-evil-insert))
+
       ;; We add this key mapping because an Emacs user can change
       ;; `dotspacemacs-major-mode-emacs-leader-key' to `C-c' and the key binding
       ;; C-c ' is shadowed by `spacemacs/default-pop-shell', effectively making
@@ -451,10 +462,13 @@ Will work on both org-mode and any mode that accepts plain html."
         (spacemacs/declare-prefix-for-mode 'org-agenda-mode
           (car prefix) (cdr prefix)))
       (spacemacs/set-leader-keys-for-major-mode 'org-agenda-mode
+        (or dotspacemacs-major-mode-leader-key ",") 'org-agenda-ctrl-c-ctrl-c
         "a" 'org-agenda
+        "c" 'org-agenda-capture
         "Cc" 'org-agenda-clock-cancel
         "Ci" 'org-agenda-clock-in
         "Co" 'org-agenda-clock-out
+        "Cj" 'org-agenda-clock-goto
         "dd" 'org-agenda-deadline
         "ds" 'org-agenda-schedule
         "ie" 'org-agenda-set-effort
@@ -466,6 +480,7 @@ Will work on both org-mode and any mode that accepts plain html."
         :title "Org-agenda transient state"
         :on-enter (setq which-key-inhibit t)
         :on-exit (setq which-key-inhibit nil)
+        :evil-leader-for-mode (org-agenda-mode . ".")
         :foreign-keys run
         :doc
         "
@@ -553,6 +568,7 @@ Headline^^            Visit entry^^               Filter^^                    Da
       :bindings
       "j" 'org-agenda-next-line
       "k" 'org-agenda-previous-line
+      "K" nil
       ;; C-h should not be rebound by evilification so we unshadow it manually
       ;; TODO add the rule in auto-evilification to ignore C-h (like we do
       ;; with C-g)
@@ -643,7 +659,28 @@ Headline^^            Visit entry^^               Filter^^                    Da
         "aoJsc" 'org-jira-create-subtask
         "aoJsg" 'org-jira-get-subtasks
         "aoJcu" 'org-jira-update-comment
-        "aoJtj" 'org-jira-todo-to-jira))))
+        "aoJtj" 'org-jira-todo-to-jira)
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmj" "jira")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmjp" "projects")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmji" "issues")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmjs" "subtasks")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmjc" "comments")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mmjt" "todos")
+      (spacemacs/set-leader-keys-for-major-mode 'org-mode
+        "mjpg" 'org-jira-get-projects
+        "mjib" 'org-jira-browse-issue
+        "mjig" 'org-jira-get-issues
+        "mjih" 'org-jira-get-issues-headonly
+        "mjif" 'org-jira-get-issues-from-filter-headonly
+        "mjiu" 'org-jira-update-issue
+        "mjiw" 'org-jira-progress-issue
+        "mjir" 'org-jira-refresh-issue
+        "mjic" 'org-jira-create-issue
+        "mjiy" 'org-jira-copy-current-issue-key
+        "mjsc" 'org-jira-create-subtask
+        "mjsg" 'org-jira-get-subtasks
+        "mjcu" 'org-jira-update-comment
+        "mjtj" 'org-jira-todo-to-jira))))
 
 (defun org/init-org-mime ()
   (use-package org-mime
@@ -768,6 +805,7 @@ Headline^^            Visit entry^^               Filter^^                    Da
     (progn
       (spacemacs/declare-prefix "aoj" "org-journal")
       (spacemacs/set-leader-keys
+        "aojf" 'org-journal-open-current-journal-file
         "aojj" 'org-journal-new-entry
         "aojs" 'org-journal-search-forever
         "aojt" 'org-journal-new-scheduled-entry
@@ -816,6 +854,51 @@ Headline^^            Visit entry^^               Filter^^                    Da
         "mtdc" 'spacemacs/org-trello-pull-card
         "mtub" 'spacemacs/org-trello-push-buffer
         "mtuc" 'spacemacs/org-trello-push-card))))
+
+(defun org/init-org-roam ()
+  (use-package org-roam
+    :defer t
+    :commands (org-roam-buffer-toggle-display
+               org-roam-dailies-find-yesterday
+               org-roam-dailies-find-today
+               org-roam-dailies-find-tomorrow
+               org-roam-tag-add
+               org-roam-tag-delete)
+    :init
+    (progn
+      (spacemacs/declare-prefix "aor" "org-roam")
+      (spacemacs/declare-prefix "aord" "org-roam-dailies")
+      (spacemacs/declare-prefix "aort" "org-roam-tags")
+      (spacemacs/set-leader-keys
+        "aordy" 'org-roam-dailies-find-yesterday
+        "aordt" 'org-roam-dailies-find-today
+        "aordT" 'org-roam-dailies-find-tomorrow
+        "aorf" 'org-roam-find-file
+        "aorg" 'org-roam-graph
+        "aori" 'org-roam-insert
+        "aorI" 'org-roam-insert-immediate
+        "aorl" 'org-roam-buffer-toggle-display
+        "aorta" 'org-roam-tag-add
+        "aortd" 'org-roam-tag-delete)
+
+      (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mrd" "org-roam-dailies")
+      (spacemacs/declare-prefix-for-mode 'org-mode "mrt" "org-roam-tags")
+      (spacemacs/set-leader-keys-for-major-mode 'org-mode
+        "rb" 'org-roam-switch-to-buffer
+        "rdy" 'org-roam-dailies-find-yesterday
+        "rdt" 'org-roam-dailies-find-today
+        "rdT" 'org-roam-dailies-find-tomorrow
+        "rf" 'org-roam-find-file
+        "rg" 'org-roam-graph
+        "ri" 'org-roam-insert
+        "rI" 'org-roam-insert-immediate
+        "rl" 'org-roam-buffer-toggle-display
+        "rta" 'org-roam-tag-add
+        "rtd" 'org-roam-tag-delete))
+    :config
+    (progn
+      (spacemacs|hide-lighter org-roam-mode))))
 
 (defun org/init-org-sticky-header ()
   (use-package org-sticky-header
